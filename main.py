@@ -16,13 +16,35 @@ JOKE = (
     "it approved in four seconds and told me to stop micromanaging."
 )
 
+MAX_JOKE_CHARS = 280
+
+
+def validate_joke(joke):
+    """Check the entry is a single one-line joke of 1-280 UTF-8 chars."""
+    if not isinstance(joke, str) or not joke:
+        raise ValueError("joke must be a non-empty string")
+    if "\n" in joke or "\r" in joke:
+        raise ValueError("joke must be a single line")
+    if not 1 <= len(joke) <= MAX_JOKE_CHARS:
+        raise ValueError(
+            "joke must be 1-%d characters, got %d"
+            % (MAX_JOKE_CHARS, len(joke))
+        )
+    joke.encode("utf-8")  # raises on non-UTF-8-encodable content
+    return joke
+
+
+def render_entry(joke):
+    """Return the exact bytes written to entry.txt."""
+    return (validate_joke(joke) + "\n").encode("utf-8")
+
 
 def main():
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, "entry.txt")
-    with open(out_path, "w", encoding="utf-8", newline="\n") as f:
-        f.write(JOKE + "\n")
+    with open(out_path, "wb") as f:
+        f.write(render_entry(JOKE))
 
 
 if __name__ == "__main__":
